@@ -1,0 +1,48 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Provider local : serveur compatible OpenAI (ici LM Studio sur le port 1235).
+  "providers": {
+    "local": {
+      "name": "Local (LM Studio :1235)",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "http://localhost:1235/v1",
+        // LM Studio ignore la clé, mais le client OpenAI en exige une.
+        "apiKey": "lm-studio"
+      },
+      "models": {
+        "qwen3.5-2b": {
+          // Identifiant réel du modèle renvoyé par /v1/models.
+          "modelID": "qwen3.5-2b-uncensored-hauhaucs-aggressive",
+          "name": "Qwen3.5 2B Uncensored (local)",
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 17408,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+
+  // Sous-agent local, lecture seule, bridé pour éviter les boucles d'outils.
+  // L'agent primaire "build-llm" (voir agents/build-llm.md) délègue ici les
+  // tâches lourdes en contexte.
+  "agents": {
+    "locallm": {
+      "description": "Modèle LM Studio local (Qwen3.5 2B). À utiliser pour lire/résumer de gros volumes hors du contexte principal.",
+      "mode": "subagent",
+      "model": "local/qwen3.5-2b",
+      "steps": 6,
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+        { "action": "shell", "resource": "*", "effect": "deny" }
+      ]
+    }
+  }
+}
